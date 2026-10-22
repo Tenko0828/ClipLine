@@ -22,6 +22,8 @@
     <string>13.0</string>
     <key>LSUIElement</key>
     <true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>用来读取 Finder 里打开的文件夹，保存成场景。</string>
     <key>NSHighResolutionCapable</key>
     <true/>
 </dict>

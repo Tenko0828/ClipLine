@@ -37,6 +37,7 @@ enum Transform: String, CaseIterable, Identifiable {
             return allCases.filter { $0.isTextTransform && $0.textResult(s) != nil && $0.textResult(s) != s }
         case .image: return [.ocr]
         case .files: return [.filePaths, .fileNames]
+        case .scene: return []
         }
     }
 

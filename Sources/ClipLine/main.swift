@@ -65,6 +65,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         menu.addItem(item("打开晾衣绳", #selector(openLine), key: "v", mods: [.command, .option]))
+        menu.addItem(item("把当前桌面存成场景…", #selector(saveScene)))
         menu.addItem(.separator())
         menu.addItem(item("取用后自动粘贴", #selector(toggleAutoPaste), on: controller.autoPaste))
         menu.addItem(item("开机时启动", #selector(toggleLogin), on: SMAppService.mainApp.status == .enabled))
@@ -104,6 +105,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             alert.informativeText = error.localizedDescription
             alert.runModal()
         }
+    }
+
+    @objc private func saveScene() {
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.messageText = "把当前打开的 App 和 Finder 文件夹存成场景"
+        alert.informativeText = "之后在绳子上点这张卡片，就能把它们重新打开。"
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+        field.placeholderString = "场景名，比如“写代码”"
+        alert.accessoryView = field
+        alert.addButton(withTitle: "存下来")
+        alert.addButton(withTitle: "取消")
+        alert.window.initialFirstResponder = field
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        let name = field.stringValue.trimmingCharacters(in: .whitespaces)
+        store.addScene(SceneTool.capture(name: name.isEmpty ? "未命名场景" : name))
     }
 
     @objc private func clearAll() { store.clearUnpinned() }

@@ -3,7 +3,7 @@ import CryptoKit
 import ImageIO
 
 enum ClipKind: String, Codable {
-    case text, image, files
+    case text, image, files, scene
 }
 
 struct ClipItem: Identifiable, Codable, Equatable {
@@ -14,6 +14,7 @@ struct ClipItem: Identifiable, Codable, Equatable {
     var imageHash: String?
     var imageSize: CGSize?
     var filePaths: [String]?
+    var scene: SceneData?
     var date: Date
     var pinned: Bool
     /// 每张卡片固定的随机倾斜角，让绳子上的东西看起来自然一点
@@ -153,6 +154,16 @@ final class ClipboardStore: ObservableObject {
         trimAndSave()
     }
 
+    // MARK: - 场景
+
+    func addScene(_ scene: SceneData) {
+        var item = newItem(.scene)
+        item.scene = scene
+        item.pinned = true
+        items.append(item)
+        save()
+    }
+
     // MARK: - 转换
 
     /// 把加工后的文字挂上绳子并写进剪贴板
@@ -170,6 +181,8 @@ final class ClipboardStore: ObservableObject {
             guard let r = t.textResult(item.text ?? "") else { return completion(false) }
             addTransformed(r)
             completion(true)
+        case .scene:
+            completion(false)
         case .files:
             guard let r = t.fileResult(item.filePaths ?? []) else { return completion(false) }
             addTransformed(r)
@@ -208,6 +221,8 @@ final class ClipboardStore: ObservableObject {
         case .files:
             let urls = (item.filePaths ?? []).map { URL(fileURLWithPath: $0) as NSURL }
             pb.writeObjects(urls)
+        case .scene:
+            break
         }
         lastChange = pb.changeCount
     }
@@ -263,6 +278,8 @@ final class ClipboardStore: ObservableObject {
             return NSItemProvider(object: (item.text ?? "") as NSString)
         case .image:
             return imageURL(item).flatMap { NSItemProvider(contentsOf: $0) } ?? NSItemProvider()
+        case .scene:
+            return NSItemProvider()
         case .files:
             return item.filePaths?.first.flatMap { NSItemProvider(contentsOf: URL(fileURLWithPath: $0)) } ?? NSItemProvider()
         }

@@ -248,7 +248,7 @@ struct HangingCard: View {
         .onTapGesture { model.onPick?(item) }
         .onDrag { store.itemProvider(for: item) }
         .contextMenu {
-            Button("取用") { model.onPick?(item) }
+            Button(item.kind == .scene ? "恢复场景" : "取用") { model.onPick?(item) }
             Button(item.pinned ? "取消固定" : "固定在绳子上") { store.togglePin(item.id) }
             let transforms = Transform.available(for: item)
             if !transforms.isEmpty {
@@ -272,6 +272,7 @@ struct HangingCard: View {
         case .text: NoteCard(text: item.text ?? "", date: item.date, seed: Int(item.id.uuid.0) << 8 | Int(item.id.uuid.1))
         case .image: PhotoCard(image: store.thumbnail(for: item), size: item.imageSize, date: item.date)
         case .files: FileTag(paths: item.filePaths ?? [], date: item.date)
+        case .scene: SceneCard(scene: item.scene ?? SceneData(name: "", apps: [], folders: []), date: item.date)
         }
     }
 
@@ -291,6 +292,7 @@ struct HangingCard: View {
         case .text: String((item.text ?? "").prefix(600))
         case .image: "图片 \(Int(item.imageSize?.width ?? 0))×\(Int(item.imageSize?.height ?? 0))"
         case .files: (item.filePaths ?? []).joined(separator: "\n")
+        case .scene: (item.scene?.folders ?? []).joined(separator: "\n")
         }
     }
 

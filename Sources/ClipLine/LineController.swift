@@ -80,6 +80,12 @@ final class LineController: NSObject, NSWindowDelegate {
 
     private func pick(_ item: ClipItem) {
         guard model.copiedID == nil else { return }
+        if item.kind == .scene {
+            if let s = item.scene { SceneTool.restore(s) }
+            store.bump(item.id)
+            hide()
+            return
+        }
         store.copyToPasteboard(item)
         withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) { model.copiedID = item.id }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.42) { [weak self] in
