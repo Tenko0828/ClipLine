@@ -153,6 +153,37 @@ final class ClipboardStore: ObservableObject {
         trimAndSave()
     }
 
+    // MARK: - 转换
+
+    /// 把加工后的文字挂上绳子并写进剪贴板
+    func addTransformed(_ text: String) {
+        addText(text)
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(text, forType: .string)
+        lastChange = pb.changeCount
+    }
+
+    func applyTransform(_ t: Transform, to item: ClipItem, completion: @escaping (Bool) -> Void) {
+        switch item.kind {
+        case .text:
+            guard let r = t.textResult(item.text ?? "") else { return completion(false) }
+            addTransformed(r)
+            completion(true)
+        case .files:
+            guard let r = t.fileResult(item.filePaths ?? []) else { return completion(false) }
+            addTransformed(r)
+            completion(true)
+        case .image:
+            guard let url = imageURL(item) else { return completion(false) }
+            Transform.recognizeText(at: url) { [weak self] r in
+                guard let self, let r else { return completion(false) }
+                self.addTransformed(r)
+                completion(true)
+            }
+        }
+    }
+
     // MARK: - 写回剪贴板
 
     func copyToPasteboard(_ item: ClipItem) {

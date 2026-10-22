@@ -37,6 +37,7 @@ final class LineController: NSObject, NSWindowDelegate {
 
         model.onPick = { [weak self] in self?.pick($0) }
         model.onDismiss = { [weak self] in self?.hide() }
+        model.onTransform = { [weak self] t, item in self?.transform(t, item) }
     }
 
     var isShown: Bool { panel.isVisible && model.visible }
@@ -88,6 +89,17 @@ final class LineController: NSObject, NSWindowDelegate {
                 self.model.copiedID = nil
                 self.store.bump(item.id)
                 if self.autoPaste { Self.simulatePaste() }
+            }
+        }
+    }
+
+    private func transform(_ t: Transform, _ item: ClipItem) {
+        store.applyTransform(t, to: item) { [weak self] ok in
+            guard let self else { return }
+            if !ok { NSSound.beep(); return }
+            self.hide()
+            if self.autoPaste {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { Self.simulatePaste() }
             }
         }
     }

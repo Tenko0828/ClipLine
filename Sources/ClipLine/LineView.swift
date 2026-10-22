@@ -9,6 +9,7 @@ final class LineModel: ObservableObject {
 
     var onPick: ((ClipItem) -> Void)?
     var onDismiss: (() -> Void)?
+    var onTransform: ((Transform, ClipItem) -> Void)?
 }
 
 enum Layout {
@@ -249,6 +250,14 @@ struct HangingCard: View {
         .contextMenu {
             Button("取用") { model.onPick?(item) }
             Button(item.pinned ? "取消固定" : "固定在绳子上") { store.togglePin(item.id) }
+            let transforms = Transform.available(for: item)
+            if !transforms.isEmpty {
+                Menu("加工…") {
+                    ForEach(transforms) { t in
+                        Button(t.title) { model.onTransform?(t, item) }
+                    }
+                }
+            }
             Divider()
             Button("取下来（删除）") { store.delete(item.id) }
         }
